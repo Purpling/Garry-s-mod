@@ -5,7 +5,7 @@ include("shared.lua")
 function ENT:Initialize()
 
 	-- Dealing with the model.
-	elseif !self.vip then self:SetModel("models/props_combine/combine_intmonitor001.mdl")
+	if !self.vip then self:SetModel("models/props_combine/combine_intmonitor001.mdl")
 	elseif self.vip then self:SetModel("models/props_combine/combine_monitorbay.mdl")
 	else self:SetModel("models/props_combine/combine_interface001.mdl") end
 

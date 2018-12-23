@@ -1,12 +1,40 @@
+local path = "autorun/dynamicvehicles/"
+
+-- Allowing for early error handling.
+if file.Exists(path.."libs/errorhandle.lua","LUA") then
+    dynamicvehicles = {} include("libs/errorhandle.lua")
+end
+
+-- Check core files/folders exist.
+local list = {"libs","objects","libs/buildhandle.lua","libs/buildhandle.lua"}
+for k,v in pairs(list) do local halt = false
+    if !file.Exists(path..v,"LUA") then
+        if dynamicvehicles!=nil&&dynamicvehicles.errorhandle!=nil then
+            dynamicvehicles.errorhandle.error(4,v.." does not exist!","!Core!")
+        end
+        halt = true
+    end
+end if halt then return nil end
 dynamicvehicles = {}
 
-include("libs/buildhandle.lua")
-include("libs/errorhandle.lua")
+-- Load the librarys.
+include(path.."libs/buildhandle.lua")
+include(path.."libs/errorhandle.lua")
 
 -- Load all the objects.
 dynamicvehicles.Objects = {}
-local f,d = file.Find("autorun/dynamicvehicles/objects/*.lua","LUA")
-for k,v in pairs(f) do include("objects/"..v) end
+local f,d = file.Find(path.."objects/*.lua","LUA")
+for k,v in pairs(f) do include(path.."objects/"..v) end
+
+-- If there is a mods folder search it, if you find something try to run it.
+if file.Exists(path.."mods","LUA") then
+    f,d = file.Find(path.."mods/*.lua","LUA")
+    for k,v in pairs(d) do
+        if file.Exists(path.."mods/"..v.."/init.lua","LUA") then
+            include(path.."mods/"..v.."/init.lua")
+        end
+    end
+end
 
 
 -- A vehicle template if you want it.

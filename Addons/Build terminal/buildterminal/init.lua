@@ -1,0 +1,1 @@
+util.AddCSLuaFile("ent_gui.lua")
