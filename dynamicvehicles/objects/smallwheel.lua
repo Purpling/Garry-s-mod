@@ -4,9 +4,14 @@
 ]]--
 local File = "smallwheel" -- Name of the file.
 local Name = "Small wheel" -- Name of the object.
+local Type = "wheel" -- Type of the object.
+local Health = 150 -- Health of the object.
 local Model = "models/hunter/blocks/cube025x025x025.mdl" -- Model of the object.
 
+dynamicvehicles.Object[File] = {name=Name,type=Type,health=Health,model=Model}
 dynamicvehicles.Objects[File] = function(entity,info)
+    entity.type = Type
+    entity.health = Health
     entity:SetModel(Model)
     entity:PhysicsInit(SOLID_VPHYSICS)
     

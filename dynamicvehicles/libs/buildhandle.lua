@@ -20,6 +20,7 @@ function dynamicvehicles.buildhandle.setup(vehicle,blueprint)
         if dynamicvehicles.Objects[blueprint[k].Name]!=nil then
             -- Run the object on the entity.
             local tbl = dynamicvehicles.Objects[blueprint[k].Name](v,blueprint[k])
+            if type(tbl)=="Vehicle" then vehicle[k] = tbl tbl = {} end
             -- If it returns data then act on it.
             for n,i in pairs(tbl||{}) do
                 if i[1]=="weld" then
@@ -50,14 +51,15 @@ function dynamicvehicles.buildhandle.setup(vehicle,blueprint)
 end
 
 -- Function to build from blueprint.
-function dynamicvehicles.buildhandle.build(blueprint)
+function dynamicvehicles.buildhandle.build(blueprint,offset,rotation)
+    offset = offset||Vector(0,0,0) rotation = rotation||Angle(0,0,0) -- Optional values.
     local vehicle = {} -- The entity version of the blueprint.
     local level,error,path = 0,"","" -- Error handling.
 
     for k,v in pairs(blueprint) do
         -- Spawn the entity, adding it to the vehicle table.
         vehicle[k] = ents.Create("prop_physics")
-        vehicle[k]:SetPos(v.Pos*24)
+        vehicle[k]:SetPos(offset+v.Pos*24)
         vehicle[k]:SetModel("models/hunter/blocks/cube025x025x025.mdl")
         vehicle[k]:Spawn()
 
@@ -75,13 +77,31 @@ function dynamicvehicles.buildhandle.build(blueprint)
     t,level,error,path = dynamicvehicles.buildhandle.setup(vehicle,blueprint)
     if !t then return nil,blueprint,level,error,path end -- If the setup errored out copy it.
 
+    -- Vehicle is done so now we add the core.
+    vehicle[0] = ents.Create("prop_physics")
+    vehicle[0]:SetPos(offset)
+    vehicle[0]:SetModel("models/hunter/blocks/cube025x025x025.mdl")
+    vehicle[0]:SetColor(Color(0,0,0,0))
+    vehicle[0]:Spawn()
+    vehicle[0].vehicle = vehicle
+    vehicle[0].blueprint = blueprint
+	vehicle[0]:SetSolid(SOLID_NONE)
+    vehicle[0]:SetRenderMode(RENDERMODE_TRANSALPHA)
+    -- Freeze the entity for attaching.
+    local po = vehicle[0]:GetPhysicsObject()
+    if po:IsValid() then po:EnableMotion(false) else
+        -- If the entity can't be frozen, cleanup and error out.
+        dynamicvehicles.buildhandle.cleanup(vehicle)
+        return nil,blueprint,4,"Entity is nil.",filepath..":build;2"
+    end
+
     -- When the vehicle exists attach everything and unfreeze.
     if #vehicle>1 then
         for k,v in pairs(vehicle) do
             for n,i in pairs(vehicle) do
                 if i!=v then
                     constraint.Weld(v,i,0,0,0,false,false)
-                    constraint.NoCollide(v,i,0,0)
+                    if k>0&&n>0 then constraint.NoCollide(v,i,0,0) end
                 end
             end
         end
@@ -91,7 +111,7 @@ function dynamicvehicles.buildhandle.build(blueprint)
         if po:IsValid() then po:EnableMotion(true) po:Wake() else
             -- If the entity can't be unfrozen, cleanup and error out.
             dynamicvehicles.buildhandle.cleanup(vehicle)
-            return nil,blueprint,4,"Entity is nil.",filepath..":build;2"
+            return nil,blueprint,4,"Entity is nil.",filepath..":build;3"
         end
     end
 
