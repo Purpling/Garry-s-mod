@@ -7,12 +7,18 @@ if false then
 
         if CLIENT then return end
 
+        print("GENERATE")
         local hash,error = hashsystem.generate("testfile")
         print(hash)
         print(error)
 
         if error==nil then
-            hashsystem.relay(hash,"testfile","testfile","works")
+            print("RELAY")
+            local result,response = hashsystem.relay(hash,"testfile","testfile","works")
+            print(result) print(response)
+            print("TRANSMIT")
+            result,response = hashsystem.transmit("*",hash,"testfile","testfile","works")
+            print(result) print(response)
         end
     end)
 end
